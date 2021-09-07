@@ -15,11 +15,13 @@ namespace pointybeard\PdfInfo;
 
 use Exception;
 use pointybeard\Helpers\Functions\Cli;
+use pointybeard\PdfInfo\Exceptions\PdfInfoAssertionFailedException;
+use pointybeard\PdfInfo\Exceptions\PdfInfoExecutionFailedException;
 
 class PdfInfo
 {
     // This is the name of the pdfinfo executable
-    private const PDFINFO = 'pdfinfo';
+    public const PDFINFO = 'pdfinfo';
 
     private $file = null;
 
@@ -38,11 +40,17 @@ class PdfInfo
         self::assertFileExists($this->file);
         self::assertPdfinfoInstalled();
 
-        Cli\run_command(sprintf('%s %s -isodates', Cli\which(self::PDFINFO), $this->file), $this->rawInfo);
+        $args = $this->file.' -isodates';
 
-        // (guard) Unable to get anthing back. Something is wrong.
+        try {
+            Cli\run_command(sprintf('%s %s', Cli\which(self::PDFINFO), $args), $this->rawInfo, $stderr, $exitCode);
+        } catch (Exception $ex) {
+            throw new PdfInfoExecutionFailedException($args, $stderr, $exitCode, 0, $ex);
+        }
+
+        // (guard) unable to get anthing back
         if (null == $this->rawInfo) {
-            throw new Exception('Error getting information about input file.');
+            throw new PdfInfoExecutionFailedException($args, 'Error getting information about input file. Raw output was empty.', $exitCode);
         }
 
         $this->parseRawInfo();
@@ -101,21 +109,21 @@ class PdfInfo
     private static function assertPdfinfoInstalled(): void
     {
         if (null == Cli\which(self::PDFINFO)) {
-            throw new Exception('pdfinfo executable cannot be located.');
+            throw new PdfInfoAssertionFailedException(self::PDFINFO.' executable cannot be located.');
         }
     }
 
     private static function assertOptionExists($option): void
     {
         if (false == in_array($option, self::$options)) {
-            throw new Exception("Invalid option '{$option}' specified.");
+            throw new PdfInfoAssertionFailedException("Invalid option '{$option}' specified.");
         }
     }
 
     private static function assertFileExists($file): void
     {
         if (false == is_readable($file) || false == file_exists($file)) {
-            throw new Exception("File '{$file}' does not exist or is not readable.");
+            throw new PdfInfoAssertionFailedException("File '{$file}' does not exist or is not readable.");
         }
     }
 

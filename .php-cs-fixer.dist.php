@@ -18,8 +18,7 @@ return (new PhpCsFixer\Config())
         (new PhpCsFixer\Finder())
             ->files()
             ->name('*.php')
-            ->in(__DIR__)
-            ->exclude(__DIR__.'/vendor')
+            ->in(__DIR__."/src")
     )
     ->setRules([
         '@PSR2' => true,

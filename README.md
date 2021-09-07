@@ -11,9 +11,15 @@ And run composer to update your dependencies:
     $ curl -s http://getcomposer.org/installer | php
     $ php composer.phar update
 
+#### pdfinfo
+
+`pdfinfo`, which is part of the [Poppler](https://poppler.freedesktop.org/) PDF rendering library, must be installed. On ubuntu, this is done with the following command:
+
+    apt-get install poppler-utils
+
 ### Requirements
 
-This library that `pdfinfo` is installed.
+- `pdfinfo` (https://poppler.freedesktop.org/)
 
 ## Usage
 
